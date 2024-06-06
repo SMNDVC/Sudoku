@@ -1,0 +1,38 @@
+.sudokuContainer {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr); /* 9 columns */
+    grid-template-rows: repeat(9, 1fr); /* 9 rows */
+    /* border: 4px solid white; */
+}
+
+
+.box {
+    width: 225px;
+    height: 225px;
+    border-color: white; /* Set border color */
+    border-style: solid; /* Set border style */
+    border-width: 2.5px; /* Set border width */
+    display: grid; /* Use grid layout for nested grid */
+    grid-template-columns: repeat(3, 1fr); /* 3 columns with equal width */
+    grid-auto-rows: 1fr; /* Auto rows with equal height */
+}
+
+.input-cell {
+    width: 75px;
+    height: 75px;
+    border: 1px solid white; /* Remove border */
+    background: none; /* Remove background */
+    text-align: center; /* Center text */
+    color: white; /* Text color */
+    font-size: 30px;
+}
+
+/* .container class gets added dynamically via js */
+
+body {
+    background-color: #222222;
+}
+
+#button {
+    margin: auto;
+}
