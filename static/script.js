@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", function() {
     generateBoard()
-    loadInputValues()});
-
+    loadInputValues()
+    colorEverything()
+});
+    
 // Function to save the input values to localStorage
 function saveInputValues() {
     const inputCells = document.querySelectorAll(".input-cell");
@@ -63,7 +65,7 @@ function generateBoard() {
     }
 }
 
-function clearBoxes() {
+function resetBoard() {
     // Get all the input cells
     const inputCells = document.querySelectorAll(".input-cell");
 
@@ -180,6 +182,25 @@ function sliceIntoColumns(digitString) {
     return columns;
 }
 
+function sliceIntoGrids(digitString) {
+    let grids = [];
+    
+    for (let gridRow = 0; gridRow < 3; gridRow++) {
+        for (let gridCol = 0; gridCol < 3; gridCol++) {
+            let grid = [];
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    let index = (gridRow * 27) + (gridCol * 3) + (row * 9) + col;
+                    grid.push(digitString[index]);
+                }
+            }
+            grids.push(grid);
+        }
+    }
+    
+    return grids;
+}
+
 
 function colorDuplicates(layers, orientation) {
     const inputCells = document.querySelectorAll(".input-cell");
@@ -226,6 +247,18 @@ function colorDuplicates(layers, orientation) {
                 colorIndex(i * 9 + indexList[k], "red");
             } else if (orientation === "columns") {
                 colorIndex(i + indexList[k] * 9, "red");
+            } else if (orientation === "grid") {
+                // Calculate the base index for the current grid
+                let baseRow = Math.floor(i / 3) * 3;
+                let baseCol = (i % 3) * 3;
+                let baseIndex = baseRow * 9 + baseCol;
+                
+                // Calculate the specific index within the grid
+                let row = Math.floor(indexList[k] / 3);
+                let col = indexList[k] % 3;
+                let gridIndex = baseIndex + row * 9 + col;
+                
+                colorIndex(gridIndex, "red");
             }
         }
     }
@@ -238,5 +271,99 @@ function colorEverything() {
     }
     board = logBoard()
     colorDuplicates(sliceIntoLayers(board), "rows");
-    colorDuplicates(sliceIntoColumns(board), "columns");
+    colorDuplicates(sliceIntoColumns(board), "columns")
+    colorDuplicates(sliceIntoGrids(board), "grid");
+}
+
+function logIndexes() {
+    var number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80]
+    
+
+    // Get all the input cells
+    const inputCells = document.querySelectorAll(".input-cell");
+    
+    // Loop through each input cell and assign a number from the random string
+    inputCells.forEach((cell, index) => {
+        if (number[index] !== undefined) {
+            cell.value = number[index];
+        } else {
+            cell.value = ""; // Clear out the cell if no more numbers are available
+        }
+    });
+
+    // Save the input values to localStorage
+    saveInputValues()
+    for (i = 0; i< 81; i++){
+        colorIndex(i, "white")
+    }
+}
+
+function makePlayableBoard(difficulty) {
+
+    function mergeLayers(layers) {
+        let mergedString = '';
+        for (let layer of layers) {
+            mergedString += layer.join('');
+        }
+        return mergedString;
+    }
+    function generateRandomNumber() {
+        let int = Math.floor(Math.random() * 10)
+        if (int === 0) {
+            i-=1
+            generateRandomNumber()
+        }
+        return String(int)
+    }
+
+    layers = sliceIntoLayers(logBoard())
+    resetBoard()
+    const inputCells = document.querySelectorAll(".input-cell");
+    lst = []
+
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 9; j++) {
+            let int = generateRandomNumber()
+            let index = generateRandomNumber()
+
+            layers[j][index] = int
+
+            if (!isBoardValid(mergeLayers(layers))) {
+                j -= 1
+                continue
+            }
+        }
+    }
+    console.log(layers)
+}
+
+function isBoardValid(board) {
+    if (!board) board = logBoard()
+    // Utility function to check for duplicates in a layer
+    function hasDuplicates(layer) {
+        let seen = new Set();
+        for (let i = 0; i < layer.length; i++) {
+            let char = layer[i];
+            if (char !== '0') { // assuming '0' represents an empty cell
+                if (seen.has(char)) {
+                    return true;
+                }
+                seen.add(char);
+            }
+        }
+        return false;
+    }
+
+    let layers = sliceIntoLayers(board);
+    let columns = sliceIntoColumns(board);
+    let grids = sliceIntoGrids(board);
+
+    // Check each layer for duplicates
+    for (let i = 0; i < 9; i++) {
+        if (hasDuplicates(layers[i]) || hasDuplicates(columns[i]) || hasDuplicates(grids[i])) {
+            return false;
+        }
+    }
+
+    return true;
 }
