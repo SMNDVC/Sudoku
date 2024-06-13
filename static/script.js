@@ -29,23 +29,29 @@ function generateBoard() {
     // Clear inner html
     sudokuContainer.innerHTML = "";
 
-    // Loop to generate boxes
-    for (let i = 0; i < 81; i++) {
+    // Loop to generate 9 larger boxes
+    const boxes = []; // Array to store the boxes
+
+    for (let i = 0; i < 9; i++) {
+        const box = document.createElement("div");
+        box.classList.add("box");
+        sudokuContainer.appendChild(box); // Append the box to the sudokuContainer
+        boxes.push(box); // Push each box element into the array
+    }
+
+    // Loop to generate 9 smaller cells in each larger box
+    for (let j = 0; j < 81; j++) {
         const inputCell = document.createElement("input");
         inputCell.classList.add("input-cell"); // Add the "input-cell" class to the input element
         inputCell.setAttribute("type", "text"); // Set the input type to text
         inputCell.setAttribute("pattern", "[0-9]"); // Set the pattern to allow only numbers
         inputCell.style.fontSize = "30px"; 
         inputCell.style.color = "white"; // Set the default text color to white
-        inputCell.style.caretColor = "transparent"; // Renive blinking pipe
+        // inputCell.style.caretColor = "transparent"; // Remove blinking pipe
         inputCell.addEventListener("input", function() {
-
             // Remove non-numeric characters from the input value
             this.value = this.value.replace(/\D/g, "");
 
-            // Get its index
-            const index = Array.from(document.querySelectorAll('.input-cell')).indexOf(this);
-            
             // Remove every character before the last one
             if (this.value.length > 1) {
                 this.value = this.value.slice(-1);
@@ -53,16 +59,24 @@ function generateBoard() {
             // Replace "0" with ""
             if (this.value === "0") {
                 this.value = "";
-            }       
+            }
+
             
-            // Save the input values to localStorage
-            saveInputValues()
-            colorEverything()
-            
+            saveInputValues();
+            colorEverything();
         });
 
-        sudokuContainer.appendChild(inputCell); // Append the input cell to the sudokuContainer
+        const rowIndex = Math.floor(j / 9); // Row index within each set of 9
+        const colIndex = j % 9; // Column index within each set of 9
+        const boxIndex = (Math.floor(rowIndex / 3) * 3) + Math.floor(colIndex / 3); // Box index
+        boxes[boxIndex].appendChild(inputCell); // Append the input cell to the box
     }
+    const inputCells = document.querySelectorAll(".input-cell");
+    inputCells.forEach(cell => {
+        cell.style.color = 'white';
+    });
+    
+    
 }
 
 function resetBoard() {
@@ -72,6 +86,7 @@ function resetBoard() {
     // Loop through each input cell and set its value to empty
     inputCells.forEach(cell => {
         cell.value = ""; // Set value to empty string
+        cell.style.color = 'white'
     });
     saveInputValues()
 };
@@ -122,22 +137,15 @@ function clearZeroes() {
 }
 
 function logBoard() {
-    // Get all the input cells
-    const inputCells = document.querySelectorAll(".input-cell")
-    var board = ""
-
+    const inputCells = document.querySelectorAll(".input-cell");
+    let board = '';
     inputCells.forEach(cell => {
-        if (cell.value == "") {
-            board += "0"
-        }
-        else {
-            board += cell.value
-        }
-        
+        board += cell.value || '0';
     });
-    // console.log(board)
-    return board
+    console.log(`Current board state: ${board}`); // Log the current board state
+    return board;
 }
+
 
 function colorIndex(index, color) {
     const inputCells = document.querySelectorAll(".input-cell")
@@ -145,95 +153,93 @@ function colorIndex(index, color) {
     inputCells.item(index).style.color = color
 }
 
-function colorEverything () {
-    const inputCells = document.querySelectorAll(".input-cell");
-    board = logBoard()
 
+function sliceIntoLayers(board) {
     let layers = [];
-    for (let i = 0; i < board.length; i += 9) {
-        let layer = board.slice(i, i + 9).split("");
-        layers.push(layer);
-    }
-    console.log(layers)
-    
-
-}
-
-function sliceIntoLayers(digitString) {
-    let layers = [];
-    for (let i = 0; i < digitString.length; i += 9) {
-        let layer = digitString.slice(i, i + 9).split("");
-        layers.push(layer);
-    }
-    return layers;
-}
-
-function sliceIntoColumns(digitString) {
-    let columns = [];
-    
-    for (let i = 0; i < 9; i++) {
-        let column = [];
-        for (let j = i; j < digitString.length; j += 9) {
-            column.push(digitString[j]);
-        }
-        columns.push(column);
-    }
-    
-    return columns;
-}
-
-function sliceIntoGrids(digitString) {
-    let grids = [];
-    
     for (let gridRow = 0; gridRow < 3; gridRow++) {
         for (let gridCol = 0; gridCol < 3; gridCol++) {
             let grid = [];
             for (let row = 0; row < 3; row++) {
                 for (let col = 0; col < 3; col++) {
-                    let index = (gridRow * 27) + (gridCol * 3) + (row * 9) + col;
-                    grid.push(digitString[index]);
+                    grid.push(board[(gridRow * 3 + row) * 9 + (gridCol * 3 + col)]);
                 }
             }
-            grids.push(grid);
+            layers.push(grid.join(''));
         }
     }
-    
+    console.log('Layers', layers); // Log the layers
+    return layers;
+}
+
+function sliceIntoColumns(board) {
+    let layers = [];
+    for (let gridRow = 0; gridRow < 3; gridRow++) {
+        for (let gridCol = 0; gridCol < 3; gridCol++) {
+            let grid = [];
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    grid.push(board[(gridRow * 3 + row) * 9 + (gridCol * 3 + col)]);
+                }
+            }
+            layers.push(grid.join(''));
+        }
+    }
+    lists = layers
+
+    let transposedLists = Array.from({ length: lists[0].length }, () => []);
+
+    // Iterate through each list in the input
+    for (let i = 0; i < lists.length; i++) {
+        for (let j = 0; j < lists[i].length; j++) {
+            // Append the j-th character of the i-th list to the j-th list of transposedLists
+            transposedLists[j].push(lists[i][j]);
+        }
+    }
+    console.log("Lists:", transposedLists)
+    return transposedLists;
+}
+
+function sliceIntoGrids(board) {
+
+    let grids = [];
+    for (let i = 0; i < 9; i++) {
+        grids.push(board.slice(i * 9, i * 9 + 9));
+    }
+    console.log('Grids:', grids); // Log the grids
     return grids;
 }
 
 
-function colorDuplicates(layers, orientation) {
+function colorDuplicates(layers) {
     const inputCells = document.querySelectorAll(".input-cell");
 
     function returnIndexList(layer) {
         let charCount = {};
         let indexList = [];
-
-        // Count the occurrences of each character
+    
         for (let i = 0; i < layer.length; i++) {
             let char = layer[i];
-            if (!charCount[char]) {
-                charCount[char] = [];
+            if (char !== '0') {
+                if (!charCount[char]) {
+                    charCount[char] = [];
+                }
+                charCount[char].push(i);
             }
-            charCount[char].push(i);
         }
-
-        // Collect the indices of duplicate characters
+    
         for (let char in charCount) {
             if (charCount[char].length > 1) {
                 indexList = indexList.concat(charCount[char]);
             }
         }
-
+    
         return indexList;
     }
-
+    
     function colorIndex(index, color) {
-        // Check if the value of the cell is not '0' before coloring
         if (inputCells.item(index).value !== '0') {
             inputCells.item(index).style.color = color;
-        }
-        else {
+        } else {
             inputCells.item(index).style.color = "white";
         }
     }
@@ -243,37 +249,32 @@ function colorDuplicates(layers, orientation) {
         let indexList = returnIndexList(layer);
 
         for (let k = 0; k < indexList.length; k++) {
-            if (orientation === "rows") {
-                colorIndex(i * 9 + indexList[k], "red");
-            } else if (orientation === "columns") {
-                colorIndex(i + indexList[k] * 9, "red");
-            } else if (orientation === "grid") {
-                // Calculate the base index for the current grid
-                let baseRow = Math.floor(i / 3) * 3;
-                let baseCol = (i % 3) * 3;
-                let baseIndex = baseRow * 9 + baseCol;
-                
-                // Calculate the specific index within the grid
-                let row = Math.floor(indexList[k] / 3);
-                let col = indexList[k] % 3;
-                let gridIndex = baseIndex + row * 9 + col;
-                
-                colorIndex(gridIndex, "red");
-            }
+            colorIndex(i * 9 + indexList[k], "red");
         }
     }
 }
 
 
+
 function colorEverything() {
-    for (i = 0; i< 81; i++){
-        colorIndex(i, "white")
+    console.log("Coloring all cells white");
+    for (let i = 0; i < 81; i++) {
+        colorIndex(i, "white");
     }
-    board = logBoard()
+
+    board = logBoard();
+    console.log(`Board state: ${board}`); // Log the current board state
+
+    console.log("Processing rows for duplicates");
     colorDuplicates(sliceIntoLayers(board), "rows");
-    colorDuplicates(sliceIntoColumns(board), "columns")
+
+    console.log("Processing columns for duplicates");
+    colorDuplicates(sliceIntoColumns(board), "columns");
+
+    console.log("Processing grids for duplicates");
     colorDuplicates(sliceIntoGrids(board), "grid");
 }
+
 
 function logIndexes() {
     var number = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80]
