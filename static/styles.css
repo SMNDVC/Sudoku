@@ -1,32 +1,44 @@
 .sudokuContainer {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns */
-    grid-template-rows: repeat(3, 1fr); /* 3 rows */
+    width: fit-content; /* Automatically adjusts to fit the content */
+    height: fit-content;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
     border: 4px solid white;
 }
 
-.box {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns in each larger box */
-    grid-template-rows: repeat(3, 1fr); /* 3 rows in each larger box */
-    border: 2.5px solid white; /* Border around each larger box */
-}
-
 .input-cell {
-    width: 75px;
-    height: 75px;
+    width: 50px;
+    height: 50px;
     border: 1px solid white;
     background: none;
     text-align: center;
     color: white;
-    font-size: 30px;
+    font-size: 20px;
 }
-
 
 body {
-    background-color: #222222;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center vertically */
+    margin: 0; /* Remove default margin */
+    margin-top: 10dvh;
+    background-color: #222222; /* Optional: to match your theme */
 }
 
-#button {
-    margin: auto;
+.heading {
+    color: white;
+}
+
+.btn-container {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.game-container{
+    display: flex;
+    width: fit-content;
+    flex-direction: column;
 }
