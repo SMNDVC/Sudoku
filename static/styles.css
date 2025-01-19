@@ -2,10 +2,18 @@
     display: grid;
     width: fit-content; /* Automatically adjusts to fit the content */
     height: fit-content;
-    grid-template-columns: repeat(9, 1fr);
-    grid-template-rows: repeat(9, 1fr);
-    border: 4px solid white;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    border: 2px solid white;
 }
+
+.sudoku-box {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    border: 2px solid white; /* Box border */
+}
+
 
 .input-cell {
     width: 50px;
@@ -15,6 +23,20 @@
     text-align: center;
     color: white;
     font-size: 20px;
+    border-radius: 0;
+}
+
+@media (max-width: 600px) {
+    .input-cell {
+        width: 9vw; /* Increase width slightly for smaller screens */
+        height: 9vw; /* Increase height slightly for smaller screens */
+    }
+    .sudoku-box {
+        display: grid;
+        grid-template-columns: repeat(3, 9vw);
+        grid-template-rows: repeat(3, 9vw);
+        border: 2px solid white; /* Box border */
+    }
 }
 
 body {
@@ -22,7 +44,7 @@ body {
     flex-direction: column;
     align-items: center; /* Center vertically */
     margin: 0; /* Remove default margin */
-    margin-top: 10dvh;
+    margin-top: 15dvh;
     background-color: #222222; /* Optional: to match your theme */
 }
 
@@ -34,7 +56,8 @@ body {
     margin-top: 10px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 5px;
 }
 
 .game-container{
@@ -42,3 +65,33 @@ body {
     width: fit-content;
     flex-direction: column;
 }
+
+.btn-primary2 {
+    color: #FFF !important;
+    background-color: #714B67 !important;
+    border-color: #714B67 !important;
+  }
+  
+  .btn-primary2:hover {
+    color: #FFF !important;
+    background-color: #52374b;
+    border-color: #52374b !important;
+  }
+  
+  .btn-primary2:focus {
+    box-shadow: 0 0 0 0.2rem rgba(134, 102, 126, 0.5) !important;
+  }
+  
+  .btn-primary2:active {
+    color: #714B67 !important;
+    background-color: #f1edf0;
+    border-color: #714B67 !important;
+    box-shadow: none !important;
+  }
+  
+  .btn-primary2:disabled {
+    color: #FFF !important;
+    background-color: #714B67 !important;
+    border-color: #714B67 !important;
+  }
+  
