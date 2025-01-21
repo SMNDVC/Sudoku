@@ -252,12 +252,16 @@ function loadQuiz() {
 }
 
 function logBoard() {
-    const inputCells = document.querySelectorAll(".input-cell");
     let board = "";
-    inputCells.forEach((cell) => {
-        board += cell.value || "0";
-    });
-    console.log(board); // Log the current board state
-    return board;
+
+    // Iterate through field IDs from 0 to 80
+    for (let i = 0; i <= 80; i++) {
+        // Get the field element by ID
+        const field = document.getElementById(`field-${i}`);
+        if (field) {
+            board += field.value || "0"; // Append the value or "0" if empty
+        }
+    }
+    console.log(board)
+    return board
 }
-//TODO: Log Board
