@@ -1,7 +1,16 @@
+var quiz = ''
+var solution = ''
+
+function saveQuizSolution() {
+  localStorage.setItem('quiz', quiz);
+  localStorage.setItem('solution', solution);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   generateBoard();
   loadInputValues();
   updateGame();
+  setLives();
 });
 
 // Function to save the input values to localStorage
@@ -21,6 +30,8 @@ function loadInputValues() {
       cell.value = savedValue;
     }
   });
+  quiz = localStorage.getItem("quiz")
+  solution = localStorage.getItem("solution")
 }
 
 function generateBoard() {
@@ -207,15 +218,24 @@ function updateGame() {
 
   resetColor();
   colorMatches(uniqueMatches);
-
+  isFull()
   saveInputValues();
 }
 
 function colorMatches(matches) {
+  let matched = false
   matches.forEach((match) => {
     match.style.color = "red";
     match.style.backgroundColor = "#ff000020";
+    matched = true
   });
+  if (matched) {
+    localStorage.setItem("lives", Math.max((+localStorage.getItem("lives") || 0) - 1, 0));
+    if (localStorage.getItem("lives") == 0) {
+      lost()
+    }
+    setLives()
+  }
 }
 
 function resetColor() {
@@ -227,7 +247,6 @@ function resetColor() {
 }
 function fillBoard(board) {
   resetBoard();
-  console.log(board);
 
   for (let i = 0; i < 81; i++) {
     const field = document.getElementById(`field-${i}`);
@@ -245,10 +264,16 @@ function loadQuiz() {
     .then((data) => {
       console.log("Random Quiz:", data);
       fillBoard(data.quiz);
+      quiz = data.quiz
+      solution = data.solution
+      saveQuizSolution()
     })
     .catch((error) => {
       console.error("Error fetching the quiz:", error);
     });
+    document.querySelector(".lose-text")?.classList.add("d-none");
+    localStorage.removeItem("lives")
+    setLives()
 }
 
 function logBoard() {
@@ -262,6 +287,44 @@ function logBoard() {
             board += field.value || "0"; // Append the value or "0" if empty
         }
     }
-    console.log(board)
     return board
+}
+
+function isFull() {
+  board = logBoard();
+  if (board == solution) {
+    for (let i = 0; i <= 80; i++) {
+      // Loop through IDs field-1 to field-80
+      const field = document.getElementById(`field-${i}`);
+      if (field) {
+        setTimeout(() => {
+          field.style.color = 'green';
+          field.style.backgroundColor = '#00ff0020'; // Set background color
+        }, 20 * i); // Increment delay for each cell
+      }
+    }
+    setTimeout(() => {
+      document.querySelector(".winner-text")?.classList.remove("d-none");
+    }, 2000); // Increment delay for each cell
+    return true;
+  }
+  document.querySelector(".winner-text")?.classList.add("d-none");
+  return false;
+}
+
+function setLives() {
+  const lives = localStorage.getItem("lives")
+  const livesElement = document.getElementById("lives");
+
+  if (!lives) {
+    localStorage.setItem("lives", 3)
+    livesElement.innerHTML = "❤️".repeat(3);
+  }
+  else {
+    livesElement.innerHTML = "❤️".repeat(lives);
+  }
+}
+
+function lost() {
+  document.querySelector(".lose-text")?.classList.remove("d-none");
 }

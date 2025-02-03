@@ -5,15 +5,12 @@ import random
 app = Flask(__name__)
 
 def get_random_quiz():
-    # Open the CSV file
-    with open('static/dataset/sudoku.csv', 'r') as file:
+    with open('static/sudoku.csv', 'r') as file:
         reader = list(csv.reader(file))
         
     random_line = random.choice(reader)
-    random_line = random_line[0]
-    random_line = str(random_line)
-    # Return the first part (the quiz)
-    return random_line
+    quiz, solution = random_line[0], random_line[1]
+    return str(quiz), str(solution)
 
 @app.route('/')
 def index():
@@ -21,8 +18,8 @@ def index():
 
 @app.route('/quiz')
 def quiz():
-    random_quiz = get_random_quiz()
-    return jsonify({'quiz': random_quiz})
+    quiz, solution = get_random_quiz()
+    return jsonify({'quiz': quiz, 'solution': solution})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
