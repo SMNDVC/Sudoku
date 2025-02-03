@@ -1,9 +1,9 @@
-var quiz = ''
-var solution = ''
+var quiz = "";
+var solution = "";
 
 function saveQuizSolution() {
-  localStorage.setItem('quiz', quiz);
-  localStorage.setItem('solution', solution);
+  localStorage.setItem("quiz", quiz);
+  localStorage.setItem("solution", solution);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadInputValues();
   updateGame();
   setLives();
+  preloadQuizzes();
 });
 
 // Function to save the input values to localStorage
@@ -30,8 +31,8 @@ function loadInputValues() {
       cell.value = savedValue;
     }
   });
-  quiz = localStorage.getItem("quiz")
-  solution = localStorage.getItem("solution")
+  quiz = localStorage.getItem("quiz");
+  solution = localStorage.getItem("solution");
 }
 
 function generateBoard() {
@@ -56,6 +57,7 @@ function generateBoard() {
       inputCell.setAttribute("pattern", "[0-9]");
       inputCell.style.fontSize = "30px";
       inputCell.style.color = "white";
+      inputCell.style.backgroundColor = "#2f2f2f"
       inputCell.id = `field-${fieldId}`; // Assign unique ID to each field
 
       inputCell.addEventListener("input", function () {
@@ -99,7 +101,10 @@ function resetBoard() {
   inputCells.forEach((cell) => {
     cell.value = ""; // Set value to empty string
     cell.style.color = "white";
+    cell.style.backgroundColor = "#2f2f2f"
   });
+
+  localStorage.removeItem("quizzFields");
   saveInputValues();
 }
 
@@ -218,23 +223,26 @@ function updateGame() {
 
   resetColor();
   colorMatches(uniqueMatches);
-  isFull()
+  isFull();
   saveInputValues();
 }
 
 function colorMatches(matches) {
-  let matched = false
+  let matched = false;
   matches.forEach((match) => {
     match.style.color = "red";
     match.style.backgroundColor = "#ff000020";
-    matched = true
+    matched = true;
   });
   if (matched) {
-    localStorage.setItem("lives", Math.max((+localStorage.getItem("lives") || 0) - 1, 0));
+    localStorage.setItem(
+      "lives",
+      Math.max((+localStorage.getItem("lives") || 0) - 1, 0)
+    );
     if (localStorage.getItem("lives") == 0) {
-      lost()
+      lost();
     }
-    setLives()
+    setLives();
   }
 }
 
@@ -242,8 +250,15 @@ function resetColor() {
   const inputCells = document.querySelectorAll(".input-cell");
   inputCells.forEach((cell) => {
     cell.style.color = "white";
-    cell.style.backgroundColor = "#222222";
+    cell.style.backgroundColor = "#2f2f2f";
   });
+
+  const quizzFields = JSON.parse(localStorage.getItem("quizzFields")) || []
+  quizzFields.forEach((fieldID) => {
+    let field = document.getElementById(fieldID)
+    field.style.backgroundColor = "#222222"
+    field.setAttribute("readonly", true);
+  })
 }
 function fillBoard(board) {
   resetBoard();
@@ -251,43 +266,111 @@ function fillBoard(board) {
   for (let i = 0; i < 81; i++) {
     const field = document.getElementById(`field-${i}`);
     if (field) {
-        field.value = board[i]; // Set the value from the board array to the field
+      field.value = board[i]; // Set the value from the board array to the field
     }
   }
-  clearZeroes()
+  clearZeroes();
   updateGame();
 }
 
-function loadQuiz() {
-  fetch("/quiz")
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Random Quiz:", data);
-      fillBoard(data.quiz);
-      quiz = data.quiz
-      solution = data.solution
-      saveQuizSolution()
-    })
-    .catch((error) => {
-      console.error("Error fetching the quiz:", error);
-    });
-    document.querySelector(".lose-text")?.classList.add("d-none");
-    localStorage.removeItem("lives")
-    setLives()
+async function preloadQuizzes(targetCount = 10) {
+  try {
+    // Retrieve existing quizzes from localStorage
+    let quizzes = JSON.parse(localStorage.getItem("sudokuGames")) || [];
+    const currentCount = quizzes.length;
+
+    // Calculate the number of quizzes to fetch to reach targetCount
+    const neededCount = targetCount - currentCount;
+
+    if (neededCount > 0) {
+      for (let i = 0; i < neededCount; i++) {
+        const response = await fetch("/quiz");
+        const data = await response.json();
+        quizzes.push(data);
+      }
+
+      // Update localStorage with the new set of quizzes
+      localStorage.setItem("sudokuGames", JSON.stringify(quizzes));
+    }
+  } catch (error) {
+    console.error("Error preloading quizzes:", error);
+  }
 }
 
-function logBoard() {
-    let board = "";
+// Function to load a quiz from localStorage
+function loadQuiz() {
+  let quizzes = JSON.parse(localStorage.getItem("sudokuGames")) || [];
+  localStorage.setItem("quizzFields", JSON.stringify([])); // Initialize as a JSON string
+  const elements = document.querySelectorAll(".input-cell")
+  elements.forEach((element) => {element.removeAttribute("readonly")})
 
-    // Iterate through field IDs from 0 to 80
-    for (let i = 0; i <= 80; i++) {
-        // Get the field element by ID
-        const field = document.getElementById(`field-${i}`);
-        if (field) {
-            board += field.value || "0"; // Append the value or "0" if empty
-        }
+  if (quizzes.length > 0) {
+    const { quiz, solution } = quizzes.shift(); // Take the first quiz
+    fillBoard(quiz);
+    
+    setFieldsToReadonly();
+    // Update the global variables or handle as needed
+    window.quiz = quiz;
+    window.solution = solution;
+
+    saveQuizSolution();
+
+    // Save the remaining quizzes back to localStorage
+    localStorage.setItem("sudokuGames", JSON.stringify(quizzes));
+
+    // Preload a new game to maintain the inventory
+    preloadQuizzes();
+  } else {
+    window.alert("Slow down there, leave some sudokus for the rest of us");
+  }
+
+  document.querySelector(".lose-text")?.classList.add("d-none");
+  const btnContainer = document.querySelector(".btn-container")
+  btnContainer.style.display = "flex"
+  localStorage.removeItem("lives");
+  setLives();
+}
+
+function setFieldsToReadonly() {
+  const elements = document.querySelectorAll(".input-cell");
+
+  // Retrieve fields from local storage and parse it as JSON
+  let fields = JSON.parse(localStorage.getItem("quizzFields")) || [];
+  
+  elements.forEach((element) => {
+    element.removeAttribute("readonly");
+    element.style.color = "white";
+
+    // Check if the input value is non-empty
+    if (element.value.trim() !== "") {
+      if (!fields.includes(element.id)) { // Avoid duplicates
+        fields.push(element.id);
+      }
+      
+      element.setAttribute("readonly", true);
+      element.style.backgroundColor = "#222222";
     }
-    return board
+  });
+
+  // Save updated fields back to local storage as a JSON string
+  localStorage.setItem("quizzFields", JSON.stringify(fields));
+}
+
+
+
+
+function logBoard() {
+  let board = "";
+
+  // Iterate through field IDs from 0 to 80
+  for (let i = 0; i <= 80; i++) {
+    // Get the field element by ID
+    const field = document.getElementById(`field-${i}`);
+    if (field) {
+      board += field.value || "0"; // Append the value or "0" if empty
+    }
+  }
+  return board;
 }
 
 function isFull() {
@@ -298,33 +381,39 @@ function isFull() {
       const field = document.getElementById(`field-${i}`);
       if (field) {
         setTimeout(() => {
-          field.style.color = 'green';
-          field.style.backgroundColor = '#00ff0020'; // Set background color
+          field.style.color = "green";
+          field.style.backgroundColor = "#00ff0020"; // Set background color
         }, 20 * i); // Increment delay for each cell
       }
     }
     setTimeout(() => {
       document.querySelector(".winner-text")?.classList.remove("d-none");
+      document.querySelector(".btn-container")?.classList.add("d-none")
     }, 2000); // Increment delay for each cell
     return true;
   }
   document.querySelector(".winner-text")?.classList.add("d-none");
+  document.querySelector(".btn-container")?.classList.remove("d-none")
   return false;
 }
 
 function setLives() {
-  const lives = localStorage.getItem("lives")
+  const lives = localStorage.getItem("lives");
   const livesElement = document.getElementById("lives");
 
   if (!lives) {
-    localStorage.setItem("lives", 3)
+    localStorage.setItem("lives", 3);
     livesElement.innerHTML = "❤️".repeat(3);
-  }
-  else {
+  } else {
     livesElement.innerHTML = "❤️".repeat(lives);
   }
 }
 
 function lost() {
   document.querySelector(".lose-text")?.classList.remove("d-none");
+  const element = document.querySelector(".btn-container")
+  element.style.display = "none";
+
+  const elements = document.querySelectorAll(".input-cell")
+  elements.forEach((element) => {element.setAttribute("readonly", true)})
 }

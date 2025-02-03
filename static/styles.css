@@ -21,9 +21,9 @@
     border: 1px solid white;
     background: none;
     text-align: center;
-    color: white;
     font-size: 20px;
     border-radius: 0;
+    background-color: #2f2f2f;
 }
 
 @media (max-width: 600px) {
@@ -94,38 +94,23 @@ body {
     background-color: #714B67 !important;
     border-color: #714B67 !important;
   }
-  
-  .winner-text {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 25vh;
-    color: #00FF0080;
-    font-family: monospace;
-    text-shadow: 
-        -2px -2px 0 black, 
-         2px -2px 0 black, 
-        -2px  2px 0 black, 
-         2px  2px 0 black;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    z-index: 9999;
+
+.winner-text {
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-size: 5vh;
 }
 
 .lose-text {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 25vh;
-    color: #FF0000;
-    font-family: monospace;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    z-index: 9999;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-size: 5vh;
 }
 
 .lives-container {

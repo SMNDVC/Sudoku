@@ -19,6 +19,7 @@ def index():
 @app.route('/quiz')
 def quiz():
     quiz, solution = get_random_quiz()
+    print('returning quiz')
     return jsonify({'quiz': quiz, 'solution': solution})
 
 if __name__ == '__main__':
